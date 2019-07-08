@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #game-board{
+            position: relative;
+            margin-top: 50px;
+        }
+        .cell{
+            border: solid 1px blue;
+            text-align: center;
+            font-size:20pt;
+            cursor: pointer;
+            color: #022dff;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="start()"> Start </button>
+    <div id="game-board"></div>
+    <script>
+        const VALUE_EMPTY = -1;
+        const VALUE_X = 1;
+        const VALUE_O = 0;
+        const ROWS = 20;
+        const COLS = 20;
+        const CELL_SIZE = 40;
+
+        function Cell(x,y) {
+            this.x = x;
+            this.y = y;
+            this.value = VALUE_EMPTY;
+
+            this.drawHtml = function () {
+                var top = x * CELL_SIZE;
+                var left = y * CELL_SIZE;
+                let cellHtml = '<div id="cell-'+x+'-'+y+'" onclick="playGame('+x+','+y+
+                    ')" class="cell" style="position: absolute; width: '+
+                    CELL_SIZE+'px; height:'+CELL_SIZE+'px; left:'+
+                    left+'px; top:'+top+'px; line-height: '+
+                    CELL_SIZE+'px;"></div>';
+                return cellHtml;
+            };
+
+            this.draw = function () {
+                var cellHtml = document.getElementById("cell-"+x+"-"+y);
+                switch (this.value) {
+                    case VALUE_X:
+                        cellHtml.innerHTML = 'X';
+                        break;
+                    case VALUE_O:
+                        cellHtml.innerHTML = "O";
+                        break;
+                    default:
+                        cellHtml.innerHTML = "";
+                        break;
+                }
+            };
+        }
+
+        function GameBoard(rows, cols, elementID) {
+            this.rows = rows;
+            this.cols = cols;
+            this.elementID = elementID;
+            this.turn = VALUE_X;
+            this.cells = [];
+            this.isOver = false;
+
+            this.draw = function () {
+                var gameBoardHtml = document.getElementById(this.elementID);
+                gameBoardHtml.innerHTML = "";
+                for(var i = 0; i < this.rows; i++){
+                    var row = [];
+                    this.cells.push(row);
+                    for(var j = 0; j < this.cols; j++){
+                        var cell = new Cell(i, j);
+                        row.push(cell);
+                        gameBoardHtml.innerHTML += cell.drawHtml();
+                    }
+                }
+            };
+            this.playCell = function (x,y) {
+                if (this.isOver) {
+                    return;
+                }
+                var cell = this.cells[x][y];
+                if(cell.value === VALUE_EMPTY){
+                    cell.value = this.turn;
+
+                    cell.draw();
+                    this.check(x, y);
+                    if(this.turn === VALUE_O){
+                        this.turn = VALUE_X;
+                    } else {
+                        this.turn = VALUE_O;
+                    }
+                } else {
+                    alert("Cell is not empty");
+                }
+            };
+
+            this.check = function (x, y) {
+                var cell = this.cells[x][y];
+                //Horizontal
+                var count = 1;
+                var i = 1;
+                while((y + i < this.cols) && this.cells[x][y + i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                i = 1;
+                while((y - i >= 0) && this.cells[x][y - i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                this.endGame(cell,count);
+                //Vertical
+                count = 1;
+                i = 1;
+                while((x + i < this.rows) &&this.cells[x + i][y].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                i = 1;
+                while((x - i >= 0) &&this.cells[x - i][y].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                this.endGame(cell,count);
+                //Left diagonal
+                count = 1;
+                i = 1;
+                while((y + i < this.cols) && (x + i < this.rows) && this.cells[x + i][y + i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                i = 1;
+                while((x - i >= 0) && (y - i >= 0) && this.cells[x - i][y - i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                this.endGame(cell,count);
+                //Right diagonal
+                count = 1;
+                i = 1;
+                while((y + i < this.cols) && (x - i >= 0) && this.cells[x - i][y + i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                i = 1;
+                while((y - i >= 0) && (x + i < this.rows) &&this.cells[x + i][y - i].value ===  cell.value){
+                    count++;
+                    i++;
+                }
+                this.endGame(cell,count);
+            };
+
+            this.endGame = function (cell,count) {
+                if (count >=5) {
+                    this.isOver = true;
+                    if (cell.value === VALUE_X) {
+                        alert("X win");
+                    }
+                    else alert("O win");
+                }
+            };
+        }
+
+        function playGame(x,y) {
+            gameBoard.playCell(x,y);
+        }
+        function start() {
+            gameBoard = new GameBoard(ROWS,COLS,"game-board");
+            gameBoard.draw();
+
+        }
+        start();
+    </script>
+</body>
+</html>
